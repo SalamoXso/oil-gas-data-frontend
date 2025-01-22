@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import FlareChart from "../components/FlareChart";
 import SearchBar from "../components/SearchBar";
 
@@ -30,6 +30,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [isScraping, setIsScraping] = useState(false);
   const [rowsScraped, setRowsScraped] = useState(0);
+  const intervalId = useRef<NodeJS.Timeout | null>(null); // Use useRef to persist intervalId
 
   const fetchFlares = async () => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
@@ -44,7 +45,11 @@ export default function Home() {
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching data:", error);
-      setError(error.message);
+      if (error instanceof Error) {
+        setError(error.message); // Access error.message only if error is an Error object
+      } else {
+        setError("An unknown error occurred"); // Handle non-Error objects
+      }
       setIsLoading(false);
     }
   };
@@ -67,7 +72,11 @@ export default function Home() {
       console.log("Scraping result:", result);
     } catch (error) {
       console.error("Error triggering scrape:", error);
-      setError(error.message);
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("An unknown error occurred");
+      }
       setIsScraping(false); // Reset scraping state on error
     }
   };
@@ -87,7 +96,11 @@ export default function Home() {
       setIsScraping(false);
     } catch (error) {
       console.error("Error stopping scrape:", error);
-      setError(error.message);
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("An unknown error occurred");
+      }
     }
   };
 
@@ -101,32 +114,34 @@ export default function Home() {
       }
       const data = await response.json();
       setIsScraping(data.is_running);
-      setRowsScraped(data.rows_scraped); // Update rowsScraped state
+      setRowsScraped(data.rows_scraped);
 
       // Stop polling if scraping is no longer running
-      if (!data.is_running) {
-        clearInterval(intervalId);
+      if (!data.is_running && intervalId.current) {
+        clearInterval(intervalId.current);
       }
     } catch (error) {
       console.error("Error fetching scraping progress:", error);
-      setError(error.message);
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("An unknown error occurred");
+      }
     }
   };
-
-  let intervalId: NodeJS.Timeout;
 
   useEffect(() => {
     fetchFlares();
 
     // Start polling only if scraping is running
     if (isScraping) {
-      intervalId = setInterval(fetchScrapingProgress, 1000); // Poll every second
+      intervalId.current = setInterval(fetchScrapingProgress, 1000); // Poll every second
     }
 
     // Cleanup interval on component unmount
     return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
+      if (intervalId.current) {
+        clearInterval(intervalId.current);
       }
     };
   }, [isScraping]); // Re-run effect when isScraping changes
