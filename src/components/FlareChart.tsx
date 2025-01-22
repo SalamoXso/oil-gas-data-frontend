@@ -5,6 +5,8 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } fro
 interface Flare {
   date: string;
   volume: number;
+  duration: number;
+  h2s: number;
 }
 
 interface FlareChartProps {
@@ -20,6 +22,8 @@ export default function FlareChart({ data }: FlareChartProps) {
         <Tooltip />
         <Legend />
         <Bar dataKey="volume" fill="#8884d8" />
+        <Bar dataKey="duration" fill="#82ca9d" />
+        <Bar dataKey="h2s" fill="#ffc658" />
       </BarChart>
     </ResponsiveContainer>
   );

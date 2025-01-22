@@ -28,18 +28,20 @@ export default function FlareMap({ data }: FlareMapProps) {
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      {data.map((flare) => (
-        <Marker key={flare.id} position={[flare.latitude, flare.longitude]}>
-          <Popup>
-            <strong>Volume:</strong> {flare.volume} <br />
-            <strong>Duration:</strong> {flare.duration} <br />
-            <strong>H2S:</strong> {flare.h2s} <br />
-            <strong>Date:</strong> {flare.date} <br />
-            <strong>Location:</strong> {flare.location} <br />
-            <strong>Operator:</strong> {flare.operator}
-          </Popup>
-        </Marker>
-      ))}
+      {data
+        .filter((flare) => flare.latitude && flare.longitude) // Filter out invalid coordinates
+        .map((flare) => (
+          <Marker key={flare.id} position={[flare.latitude, flare.longitude]}>
+            <Popup>
+              <strong>Volume:</strong> {flare.volume} <br />
+              <strong>Duration:</strong> {flare.duration} <br />
+              <strong>H2S:</strong> {flare.h2s} <br />
+              <strong>Date:</strong> {flare.date} <br />
+              <strong>Location:</strong> {flare.location} <br />
+              <strong>Operator:</strong> {flare.operator}
+            </Popup>
+          </Marker>
+        ))}
     </MapContainer>
   );
 }
