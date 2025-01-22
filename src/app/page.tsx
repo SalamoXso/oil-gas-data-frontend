@@ -33,7 +33,7 @@ export default function Home() {
   const intervalId = useRef<NodeJS.Timeout | null>(null); // Use useRef to persist intervalId
 
   const fetchFlares = async () => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://oil-gas-data-backend.onrender.com/api/v1";
 
     try {
       const response = await fetch(`${apiUrl}/flares/`);
@@ -58,7 +58,7 @@ export default function Home() {
     setIsScraping(true);
     setError(null);
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://oil-gas-data-backend.onrender.com/api/v1";
 
     try {
       const response = await fetch(`${apiUrl}/scrape/`, {
@@ -82,7 +82,7 @@ export default function Home() {
   };
 
   const handleStopScrape = async () => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://oil-gas-data-backend.onrender.com/api/v1";
 
     try {
       const response = await fetch(`${apiUrl}/stop-scrape/`, {
@@ -105,7 +105,7 @@ export default function Home() {
   };
 
   const fetchScrapingProgress = async () => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://oil-gas-data-backend.onrender.com";
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://oil-gas-data-backend.onrender.com/api/v1";
 
     try {
       const response = await fetch(`${apiUrl}/scraping-progress/`);
