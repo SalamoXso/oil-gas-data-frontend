@@ -105,7 +105,7 @@ export default function Home() {
   };
 
   const fetchScrapingProgress = async () => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://oil-gas-data-backend.onrender.com";
 
     try {
       const response = await fetch(`${apiUrl}/scraping-progress/`);
