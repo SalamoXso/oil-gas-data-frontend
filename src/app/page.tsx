@@ -30,8 +30,11 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [isScraping, setIsScraping] = useState(false);
   const [rowsScraped, setRowsScraped] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10); // Number of items per page
   const intervalId = useRef<NodeJS.Timeout | null>(null); // Use useRef to persist intervalId
 
+  // Fetch flares data
   const fetchFlares = async () => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://oil-gas-data-backend.onrender.com/api/v1";
 
@@ -54,6 +57,7 @@ export default function Home() {
     }
   };
 
+  // Start scraping
   const handleScrape = async () => {
     setIsScraping(true);
     setError(null);
@@ -81,6 +85,7 @@ export default function Home() {
     }
   };
 
+  // Stop scraping
   const handleStopScrape = async () => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://oil-gas-data-backend.onrender.com/api/v1";
 
@@ -93,7 +98,9 @@ export default function Home() {
       }
       const result = await response.json();
       console.log("Stop scraping result:", result);
-      setIsScraping(false);
+
+      // Fetch scraping progress immediately to update the UI
+      await fetchScrapingProgress();
     } catch (error) {
       console.error("Error stopping scrape:", error);
       if (error instanceof Error) {
@@ -104,6 +111,7 @@ export default function Home() {
     }
   };
 
+  // Fetch scraping progress
   const fetchScrapingProgress = async () => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://oil-gas-data-backend.onrender.com/api/v1";
 
@@ -130,6 +138,19 @@ export default function Home() {
     }
   };
 
+  // Filter flares based on search term
+  const filteredFlares = flares.filter(
+    (flare) =>
+      flare.operator_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      flare.filing_number.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentFlares = filteredFlares.slice(indexOfFirstItem, indexOfLastItem);
+
+  // Fetch data on component mount
   useEffect(() => {
     fetchFlares();
 
@@ -146,11 +167,7 @@ export default function Home() {
     };
   }, [isScraping]); // Re-run effect when isScraping changes
 
-  const filteredFlares = flares.filter((flare) =>
-    flare.operator_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    flare.filing_number.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
+  // Loading state
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -159,6 +176,7 @@ export default function Home() {
     );
   }
 
+  // Error state
   if (error) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -198,26 +216,66 @@ export default function Home() {
       </div>
       <div className="mt-8">
         <h2 className="text-xl font-semibold mb-4">Flare Data</h2>
-        <ul className="space-y-4">
-          {filteredFlares.map((flare) => (
-            <li key={flare.id} className="p-4 border rounded-lg shadow-sm">
-              <p><strong>Exception Number:</strong> {flare.exception_number}</p>
-              <p><strong>Submittal Date:</strong> {flare.submittal_date}</p>
-              <p><strong>Filing Number:</strong> {flare.filing_number}</p>
-              <p><strong>Status:</strong> {flare.status}</p>
-              <p><strong>Filing Type:</strong> {flare.filing_type}</p>
-              <p><strong>Operator Name:</strong> {flare.operator_name}</p>
-              <p><strong>Property:</strong> {flare.property}</p>
-              <p><strong>Effective Date:</strong> {flare.effective_date}</p>
-              <p><strong>Expiration Date:</strong> {flare.expiration_date}</p>
-              <p><strong>FV District:</strong> {flare.fv_district}</p>
-              <p><strong>Volume:</strong> {flare.volume}</p>
-              <p><strong>Duration:</strong> {flare.duration}</p>
-              <p><strong>H2S:</strong> {flare.h2s}</p>
-              <p><strong>Date:</strong> {flare.date}</p>
-            </li>
-          ))}
-        </ul>
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white border rounded-lg shadow-sm">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="px-4 py-2">Exception Number</th>
+                <th className="px-4 py-2">Submittal Date</th>
+                <th className="px-4 py-2">Filing Number</th>
+                <th className="px-4 py-2">Status</th>
+                <th className="px-4 py-2">Filing Type</th>
+                <th className="px-4 py-2">Operator Name</th>
+                <th className="px-4 py-2">Property</th>
+                <th className="px-4 py-2">Effective Date</th>
+                <th className="px-4 py-2">Expiration Date</th>
+                <th className="px-4 py-2">FV District</th>
+                <th className="px-4 py-2">Volume</th>
+                <th className="px-4 py-2">Duration</th>
+                <th className="px-4 py-2">H2S</th>
+                <th className="px-4 py-2">Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentFlares.map((flare) => (
+                <tr key={flare.id} className="border-t">
+                  <td className="px-4 py-2">{flare.exception_number}</td>
+                  <td className="px-4 py-2">{flare.submittal_date}</td>
+                  <td className="px-4 py-2">{flare.filing_number}</td>
+                  <td className="px-4 py-2">{flare.status}</td>
+                  <td className="px-4 py-2">{flare.filing_type}</td>
+                  <td className="px-4 py-2">{flare.operator_name}</td>
+                  <td className="px-4 py-2">{flare.property}</td>
+                  <td className="px-4 py-2">{flare.effective_date}</td>
+                  <td className="px-4 py-2">{flare.expiration_date}</td>
+                  <td className="px-4 py-2">{flare.fv_district}</td>
+                  <td className="px-4 py-2">{flare.volume}</td>
+                  <td className="px-4 py-2">{flare.duration}</td>
+                  <td className="px-4 py-2">{flare.h2s}</td>
+                  <td className="px-4 py-2">{flare.date}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {/* Pagination Controls */}
+        <div className="mt-4 flex justify-between items-center">
+          <button
+            onClick={() => setCurrentPage(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 disabled:bg-blue-300"
+          >
+            Previous
+          </button>
+          <span>Page {currentPage}</span>
+          <button
+            onClick={() => setCurrentPage(currentPage + 1)}
+            disabled={indexOfLastItem >= filteredFlares.length}
+            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 disabled:bg-blue-300"
+          >
+            Next
+          </button>
+        </div>
       </div>
     </main>
   );
